@@ -20,7 +20,6 @@ Hints:
 '''
 
 
-
 import os
 import time
 import csv
@@ -50,123 +49,171 @@ class Inventory(File):
     def __str__(self):
         return f"{super().__str__()}, {self.amount}"
 
+# Directories nad files
 directory = os.getcwd()
 balance_file =  directory + '\Balance.txt'
 inventory_file = directory + '\Inventory.txt'
 history_file = directory + '\History.txt'
 
 
-global balance_lst
-global inventory_lst
-global history_lst
+# Load date from file
+def load_data_from_file(file_name):
+    data = []
+    if os.path.exists(file_name):
+        try:
+            with open(file_name, 'r', newline='') as f:
+                reader = csv.reader(f)
+                next(reader)  # jump header
+                for row in reader:
+                    data.append(row)
+        except Exception as e:
+            print(f"Error loading file {file_name}: {e}")
+    return data
 
-packages = []
-item_index = 0
-packages_index = 0
-package_weight = 0
-inventory_lst = []
 
 
-
-if os.path.exists(balance_file) or os.path.exists(inventory_file) or os.path.exists(history_file):
-    print('The file exists!')
-else:
-    # Create CSV files with headers
-    with open(balance_file, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Date", "Package Number", "Weight", "Amount"])
-    with open(inventory_file, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Date", "Package Number", "Weight", "Amount"])
-    with open(history_file, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(["Date", "Operation"])
-
-print("------------ Welcome to package system -------------------------")
-
-n_items = None
-packages = []
-
-while n_items is None:
+# Save data in file
+def save_data_to_file(file_name, data, header):
     try:
-        n_items = abs(int(input("Add number of items to be sent: ")))
+        with open(file_name, 'a', newline='') as f:
+            writer = csv.writer(f)
+            if not os.path.exists(file_name) or os.path.getsize(file_name) == 0:
+                writer.writerow(header)
+            for row in data:
+                writer.writerow(row)
+    except Exception as e:
+        print(f"Error saving data in file {file_name}: {e}")
+
+
+
+# Load existing data from files
+balance_data = load_data_from_file(balance_file)
+inventory_data = load_data_from_file(inventory_file)
+history_data = load_data_from_file(history_file)
+
+# Initilice lists from loaded data
+balance_lst = [Balance(*data) for data in balance_data]
+inventory_lst = [Inventory(*data) for data in inventory_data]
+
+# Records on historical
+def add_to_history(operation, date):
+    history_data.append([date, operation])
+    save_data_to_file(history_file, history_data, ["Date", "Operation"])
+
+
+# Show balance
+def show_balance():
+    try:
+        total_balance = sum([float(item.amount) for item in balance_lst])
+        print(f"Total balance: {total_balance}€")
     except ValueError:
-        print("Wrong item weight. Please add numeric value.")
-
-    if n_items == "Exit":
-        print("Thanks for using us!")
-        exit()
-
-    else:
-
-        while item_index < n_items:
-
-            try:
-
-                item_weight = abs(round(float(input("Please add item weight: ")), 2))
-
-                if item_weight == 0:
-                    print("Not more items to send\n")
-                    item_index = n_items
-
-                elif 1 <= item_weight <= 10:
-
-                    if package_weight + item_weight <= 20:
-
-                        print("Item number " + str(item_index + 1) + " added to current package")
-                        package_weight = package_weight + item_weight
-                        packages.append(package_weight)
-                        curr_time = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
-                        print(curr_time)
-                        item = Balance(curr_time, item_index, packages_index, item_weight)
-                        inventory_lst.append(item)
+        print("Error calculating balance.")
 
 
-                        # Save data to CSV file
-                        with open(balance_file, 'a', newline='') as f:
-                            writer = csv.writer(f)
-                            writer.writerow([curr_time, item_index, packages_index, item_weight])
+# Purchase function
+def purchase_item():
+    print("\n--- Purchasing item ---")
+    try:
+        item_weight = abs(round(float(input("Add weight (kg): ")), 2))
+        item_amount = abs(round(float(input("Add amount (€): ")), 2))
+        curr_time = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
 
-                        item = Balance(curr_time, item_index, packages_index, item_weight)
-                        inventory_lst.append(item)
+        item = Balance(curr_time, len(balance_lst) + 1, item_weight, item_amount)  # Add new balance
+        balance_lst.append(item)
+        inventory_lst.append(item)
 
-                    else:
+        # Save data in file
+        save_data_to_file(balance_file, [(item.date, item.n_package, item.weight, item.amount)],
+                          ["Date", "Package Number", "Weight", "Amount"])
+        save_data_to_file(inventory_file, [(item.date, item.n_package, item.weight, item.amount)],
+                          ["Date", "Package Number", "Weight", "Amount"])
 
-                        print("\n"
-                                  "-------------------------------------------------------------------------------------\n"
-                                  "Previous package has been sent\n"
-                                  "-------------------------------------------------------------------------------------\n"
-                                  "Initializing new package")
-                        packages.append(0)
-                        packages_index += 1
-                        package_weight = item_weight
-                        packages[packages_index] = package_weight
-                else:
-                    print("Your item weight is larger than 10kg.\n"
-                              "It can't be sent")
-
-                item_index += 1
-
-            except ValueError:
-                print("Wrong item weight. Please add numeric value.")
+        # Record the operation in history
+        add_to_history("Purchase made ", curr_time)
+        print(f"Purchase made: {item.amount}€ by {item.weight}kg")
+    except ValueError:
+        print("Incorrect value.")
 
 
+# Sale function
+def sale_item():
+    print("\n--- Making sale ---")
+    try:
+        item_weight = abs(round(float(input("Add weight (kg): ")), 2))
+        item_amount = abs(round(float(input("Add amount (€): ")), 2))
+        curr_time = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
 
-print("\n--------------------------------------------------- Generating inventory information ---------------------------------------------------------------------------------------------\n")
+        item = Balance(curr_time, len(balance_lst) + 1, item_weight, -item_amount)  # sale (negative amount)
+        balance_lst.append(item)
+        inventory_lst.append(item)
 
-curr_time = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
+        # Save data in file
+        save_data_to_file(balance_file, [(item.date, item.n_package, item.weight, item.amount)],
+                          ["Date", "Package Number", "Weight", "Amount"])
+        save_data_to_file(inventory_file, [(item.date, item.n_package, item.weight, item.amount)],
+                          ["Date", "Package Number", "Weight", "Amount"])
 
-total_weight = sum(packages)
-max_weight = len(packages) * 20
-unused_capacity = max_weight - total_weight
+        # Record the operation in history
+        add_to_history("Venta realizada", curr_time)
+        print(f"Sale made: {item.amount}€ by {item.weight}kg")
+    except ValueError:
+        print("Incorrect value. You must enter valid numbers.")
 
-lighter_package_weight = min(packages)
-lighter_package_index = packages.index(lighter_package_weight)
+
+# display inventory
+def show_inventory():
+    print("\n--- Current inventory ---")
+    for item in inventory_lst:
+        print(item)
 
 
-print('Number of packages sent: {0}. \n'
-        'Total weight of packages sent: {1}kg \n'
-        'Total unused capacity: {2}kg \n'
-        'The lighter package number: {3} \n'
-        'Unused capacity from lighter package: {4}kg'.format(len(packages), total_weight, unused_capacity,
-                                                             lighter_package_index + 1, 20 - lighter_package_weight))
+# User options menu
+def main_menu():
+    print("\n--- Menú de operaciones ---\n" +
+          "1. Make purchase\n" +
+          "2. Make sale\n" +
+          "3. See balance\n" +
+          "4. View inventory\n" +
+          "5. Exit\n")
+
+
+
+    while True:
+        print("\n--- Menú de operaciones ---\n" +
+              "1. Make purchase\n" +
+              "2. Make sale\n" +
+              "3. See balance\n" +
+              "4. View inventory\n" +
+              "5. Exit\n")
+        try:
+            option = int(input("\nChoose one option: "))
+
+            if option == 1:
+                purchase_item()
+            elif option == 2:
+                sale_item()
+            elif option == 3:
+                show_balance()
+            elif option == 4:
+                show_inventory()
+            elif option == 5:
+                print("Thank you for using the system.")
+                # Save all data before exit
+                save_data_to_file(balance_file,
+                                  [(item.date, item.n_package, item.weight, item.amount) for item in balance_lst],
+                                  ["Date", "Package Number", "Weight", "Amount"])
+                save_data_to_file(inventory_file,
+                                  [(item.date, item.n_package, item.weight, item.amount) for item in inventory_lst],
+                                  ["Date", "Package Number", "Weight", "Amount"])
+                save_data_to_file(history_file, history_data, ["Date", "Operation"])
+                exit()
+            else:
+                print("Invalid option. Try again.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+
+# Iniciar el programa
+if __name__ == "__main__":
+    print("------------ Welcome to warehouse accounting system -------------------------")
+    main_menu()
