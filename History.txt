@@ -1,36 +1,4 @@
 Date,Operation
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:41:06,Purchase made 
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:22:27,Compra realizada
-26/12/2024 17:24:00,Venta realizada
-26/12/2024 17:26:08,Compra realizada
-26/12/2024 17:41:06,Purchase made 
+08/01/2025 14:14:19,"Purchase: patata (Quantity: 30, Total Cost: 90.0€)"
+08/01/2025 14:14:31,"Sale: patata (Quantity: 5.0, Total Sale: 15.0€)"
+08/01/2025 14:14:39,"Sale: patata (Quantity: 5.0, Total Sale: 15.0€)"
