@@ -1,4 +1,4 @@
-Name,Date,Package Number,Quantity,Price per Unit
-patata,08/01/2025 14:14:19,1,30,3.0
+Name,Date,Package Number,Weight,Price per Unit
+patata,08/01/2025 14:14:19,1,30.0,3.0
 patata,08/01/2025 14:14:31,2,5.0,3.0
 patata,08/01/2025 14:14:39,3,5.0,3.0

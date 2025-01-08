@@ -2,3 +2,5 @@ Date,Operation
 08/01/2025 14:14:19,"Purchase: patata (Quantity: 30, Total Cost: 90.0€)"
 08/01/2025 14:14:31,"Sale: patata (Quantity: 5.0, Total Sale: 15.0€)"
 08/01/2025 14:14:39,"Sale: patata (Quantity: 5.0, Total Sale: 15.0€)"
+08/01/2025 14:53:54,"Shipping: jjj (Quantity: kkf, Total Cost: 6.0€)"
+08/01/2025 14:58:49,"Shipping: c (Destination : sss, Total Cost: 60.0€)"

@@ -28,12 +28,26 @@ class Inventory(File):
     def __str__(self):
         return f"{super().__str__()}, {self.price_per_unit}"
 
+class Shipment:
+    def __init__(self, shipment_id, item_name, shipment_date, destination, shipping_cost):
+        self.shipment_id = shipment_id
+        self.item_name = item_name
+        self.shipment_date = shipment_date
+        self.destination = destination
+        self.shipping_cost = shipping_cost
+
+    def __str__(self):
+        return f"{self.shipment_id}, {self.item_name}, {self.shipment_date}, {self.destination}, {self.shipping_cost}"
+
+
+
 
 # Directories and files
 directory = os.getcwd()
 balance_file = directory + '\Balance.txt'
 inventory_file = directory + '\Inventory.txt'
 history_file = directory + '\History.txt'
+shipment_file = directory + '\shipment_file.txt'
 
 # Load data from file
 def load_data_from_file(file_name):
@@ -69,6 +83,7 @@ history_data = load_data_from_file(history_file)
 # Initialize lists from loaded data
 balance_lst = [Balance(data[0], data[1], int(data[2]), float(data[3]), float(data[4])) for data in balance_data]
 inventory_lst = [Inventory(data[0], data[1], int(data[2]), float(data[3]), float(data[4])) for data in inventory_data]
+shipments = []
 
 # Records on historical
 def add_to_history(operation, date):
@@ -227,7 +242,6 @@ def show_inventory():
 
             if matching_balance_entry:
                 # Si la entrada del balance tiene un precio negativo (compra), el balance será negativo
-                # Si la entrada del balance tiene un precio positivo (venta), el balance será positivo
                 if matching_balance_entry.price < 0:
                     total_balance = matching_balance_entry.price  # Compra, balance negativo
                 else:
@@ -242,6 +256,44 @@ def show_inventory():
             print(f"Error processing item: {item.name}. Please check data format.")
 
 
+def send_item():
+    print("\n--- Sending item ---")
+    try:
+        # Solicitar datos del envío
+        item_name = input("Enter the name of the item to send: ")
+        destination = input("Enter the destination address: ")
+        shipping_cost = float(input("Enter shipping cost (€): "))
+        shipment_date = time.strftime("%d/%m/%Y %H:%M:%S", time.localtime())
+
+        # Crear un nuevo envío
+        shipment_id = len(shipments) + 1  # ID de envío
+        shipment = Shipment(shipment_id, item_name, shipment_date, destination, shipping_cost)
+
+        # Guardar el envío
+        shipments.append(shipment)
+
+        # Registrar la operación en el historial
+        add_to_history(f"Shipping: {item_name} (Destination : {destination}, Total Cost: {shipping_cost}€)", shipment_date)
+
+        # Agregar el costo del envío al balance como un gasto negativo
+        balance_entry = Balance(item_name, shipment_date, shipment_id, 0, -shipping_cost)  # Gasto negativo
+        balance_lst.append(balance_entry)  # Añadir la entrada de balance
+
+        # Guardar datos de los envíos en el archivo correspondiente
+        save_data_to_file(shipment_file, [(shipment.shipment_id, shipment.item_name, shipment.shipment_date,
+                                           shipment.destination, shipment.shipping_cost) for shipment in shipments],
+                          ["Shipment ID", "Item Name", "Shipment Date", "Destination", "Shipping Cost"])
+
+        # Guardar cambios en el archivo de balance
+        save_data_to_file(balance_file, [(entry.name, entry.date, entry.n_package, entry.weight, entry.price) for entry in balance_lst],
+                          ["Name", "Date", "Package Number", "Quantity", "Total Cost"])
+
+        print(f"Item sent: {item_name}, Destination: {destination}, Shipping Cost: {shipping_cost}€")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+
 # User options menu
 def main_menu():
     while True:
@@ -250,7 +302,8 @@ def main_menu():
               "2. Make sale\n" +
               "3. See balance\n" +
               "4. View inventory\n" +
-              "5. Exit\n")
+              "5. Send item\n" +
+              "6. Exit\n")
         try:
             option = int(input("\nChoose one option: "))
             if option == 1:
@@ -262,12 +315,13 @@ def main_menu():
             elif option == 4:
                 show_inventory()
             elif option == 5:
+                send_item()  # Llamada a la función de envío
+            elif option == 6:
                 print("Thank you for using the system.")
-                # Save all data before exit
-                save_data_to_file(balance_file,
-                                  [(item.name, item.date, item.n_package, item.weight, item.price) for item in balance_lst],
-                                  ["Name", "Date", "Package Number", "Weight", "Price"])
+                save_data_to_file(balance_file, [(entry.name, entry.date, entry.n_package, entry.weight, entry.price) for entry in balance_lst], ["Name", "Date", "Package Number", "Weight", "Price"])
+                save_data_to_file(inventory_file, [(entry.name, entry.date, entry.n_package, entry.weight, entry.price_per_unit) for entry in inventory_lst], ["Name", "Date", "Package Number", "Weight", "Price per Unit"])
                 save_data_to_file(history_file, history_data, ["Date", "Operation"])
+                save_data_to_file(shipment_file, [(shipment.shipment_id, shipment.item_name, shipment.shipment_date, shipment.destination, shipment.shipping_cost) for shipment in shipments], ["Shipment ID", "Item Name", "Shipment Date", "Destination", "Shipping Cost"])
                 exit()
             else:
                 print("Invalid option. Try again.")
